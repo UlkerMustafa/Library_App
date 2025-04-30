@@ -2,31 +2,53 @@ package org.libraryapp.controller;
 
 
 import lombok.RequiredArgsConstructor;
-import org.libraryapp.service.UserService;
-import org.libraryapp.util.enums.UserTypeEnum;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.libraryapp.dao.repository.UserRepository;
+import org.libraryapp.dto.AuthRequestDto;
+import org.libraryapp.dto.LoginRequestDto;
+import org.libraryapp.exception.EmailAlreadyTakenException;
+import org.libraryapp.service.impl.UserDetailsServiceImpl;
+import org.libraryapp.util.filter.JwtFilter;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserService userService;
+    private final UserDetailsServiceImpl userService;
+    private final UserRepository repository;
+    private final AuthenticationManager authenticationManager;
+    private final JwtFilter jwtFilter;
 
     @PostMapping("/register")
-    public String register(@RequestParam String name,
-                           @RequestParam String surname,
-                           @RequestParam String email,
-                           @RequestParam String password,
-                           @RequestParam UserTypeEnum userType){
-        try{
-            userService.registerUser(name,surname,email,password,userType);
+    public String register(@RequestBody AuthRequestDto dto) {
+        try {
+            userService.register(dto);
             return "User registered successfully!";
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return e.getMessage();
         }
     }
-//    @RequestParam — HTTP sorgularında URL query parametrlərini və ya form datanı Java metoduna almaq üçün istifadə olunur.
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginRequestDto dto) {
+        var userOptional = repository.findByEmail(dto.getEmail());
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email or password is incorrect");
+        }
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    dto.getEmail(), dto.getPassword()));
+        } catch (EmailAlreadyTakenException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email or password is incorrect");
+        }
+        var user = userOptional.get();
+        var token = jwtFilter.tokenGenerate(user.getID());
+        return ResponseEntity.ok().body(token);
+    }
+
+
 }

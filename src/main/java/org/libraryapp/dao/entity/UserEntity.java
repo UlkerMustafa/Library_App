@@ -3,6 +3,7 @@ package org.libraryapp.dao.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -14,6 +15,7 @@ import org.libraryapp.util.enums.UserTypeEnum;
 @Getter
 @Setter
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserEntity {
@@ -21,14 +23,15 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ID;
 
-    @NotEmpty
+    @NotBlank
     private String name;
-    @NotEmpty
+    @NotBlank
     private  String surname;
-    @NotEmpty
+    @NotBlank
     @Email
+    @Column(unique = true,nullable = false)
     private String email;
-    @NotEmpty
+    @NotBlank
     private String  password;
 
     @Enumerated(EnumType.STRING)
