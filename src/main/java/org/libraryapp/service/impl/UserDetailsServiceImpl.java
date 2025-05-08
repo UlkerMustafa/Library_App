@@ -8,6 +8,7 @@ import org.libraryapp.dao.repository.UserRepository;
 import org.libraryapp.dto.AuthRequestDto;
 import org.libraryapp.exception.EmailAlreadyTakenException;
 import org.libraryapp.exception.InvalidEmailException;
+import org.libraryapp.util.helper.EmailSender;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.User;
@@ -24,7 +25,7 @@ import java.util.List;
 public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository repository;
     private final BCryptPasswordEncoder passwordEncoder;
-
+    private final EmailSender emailSender;
 
 
     @Override
@@ -51,8 +52,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 
         repository.save(entity);
-
-
+        var text = String.format("%s Library_App proqramina xos gelmisiz.", entity.getName());
+        emailSender.sendEmail(entity.getEmail(), "Library_App", text);
 
 
         return ResponseEntity.status(HttpStatus.CREATED).body("Registration was successful.");

@@ -10,6 +10,9 @@ import lombok.*;
 import org.hibernate.usertype.UserType;
 import org.libraryapp.util.enums.UserTypeEnum;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name="library_user ")
 @Getter
@@ -36,4 +39,11 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     private UserTypeEnum userType;
+    @ManyToMany
+    @JoinTable(
+            name = "user_books",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "book_id")
+    )
+    private Set<BookEntity> books = new HashSet<>();
 }

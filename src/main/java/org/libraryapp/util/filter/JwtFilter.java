@@ -1,5 +1,6 @@
 package org.libraryapp.util.filter;
 
+import io.jsonwebtoken.Claims;
 import  io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -40,19 +41,42 @@ public class JwtFilter {
         }
     }
 
-    public String extractUsername(String token) {
-        String subject = tokenFromDecoder(token);
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        String subject = claims.getSubject();
         if (subject == null) {
-            throw new RuntimeException("token is invalid");
+            throw new RuntimeException("Subject (User ID) claim is missing or null in the token");
         }
-        return subject;
+        try {
+            return Long.parseLong(subject);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Subject (User ID) claim is not a valid number: " + subject, e);
+        }
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        return extractUsername(token).equals(userDetails.getUsername());
+
+    public boolean isTokenValid(String token) {
+        try {
+            if(token==null){
+                throw new RuntimeException("token bosdur");
+            }
+            extractAllClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    public Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(secretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     private SecretKey secretKey(){
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
-    }
-}
+
+}}

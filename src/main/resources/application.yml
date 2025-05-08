@@ -1,4 +1,15 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ulkar.mustafazada@gmail.com
+    password: jqsg efaq bhhi elie
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   application:
     name: taskstudent
   datasource:
@@ -10,6 +21,10 @@ spring:
       ddl-auto: update
 server:
   port: 8080
+  servlet:
+    session:
+      persistent: false
 jwt:
   expire: 2592000000
   secret: 1234567898327651751834402182910384756473829387483292789949112
+

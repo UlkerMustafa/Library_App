@@ -23,6 +23,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtFilter jwtFilter;
 
+
     @PostMapping("/register")
     public String register(@RequestBody AuthRequestDto dto) {
         try {
@@ -47,6 +48,9 @@ public class AuthController {
         }
         var user = userOptional.get();
         var token = jwtFilter.tokenGenerate(user.getID());
+
+
+
         return ResponseEntity.ok().body(token);
     }
 
